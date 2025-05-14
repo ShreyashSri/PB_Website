@@ -24,6 +24,7 @@ API:
   - changed-files:
     - any-glob-to-any-file: 'app/**/api/**/*'
     - any-glob-to-any-file: 'lib/swagger.ts'
+    - any-glob-to-any-file: 'app/**/api/**/upload/*.ts'
 
 Styling:
   - changed-files:
