@@ -141,8 +141,3 @@ Additionally, the PR Command Bot automatically processes:
 - `/kind:[type]` or `/kind [type]` in PR descriptions to add kind labels (e.g., kind/bug, kind/feature)
 
 ---
-
-## **Contact**  
-If you have any questions or need assistance, feel free to reach out to the maintainers.  
-
-Let's build something amazing! 🚀
