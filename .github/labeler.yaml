@@ -3,11 +3,11 @@ GitHub Actions:
   - changed-files:
     - any-glob-to-any-file: '.github/**/*'
 
-documentation:
+Documentation:
   - changed-files:
     - any-glob-to-any-file: '*.md'
 
-Devops:
+CI/CD:
   - changed-files:
     - any-glob-to-any-file: '.github/workflows/*'
     - any-glob-to-any-file: '.infisical.json'
@@ -20,35 +20,34 @@ Frontend:
     - any-glob-to-any-file: 'app/**/*.ts'
     - any-glob-to-any-file: 'public/**/*'
 
-Backend:
+API:
   - changed-files:
     - any-glob-to-any-file: 'app/**/api/**/*'
     - any-glob-to-any-file: 'lib/swagger.ts'
-    - any-glob-to-any-file: 'app/**/api/**/upload/*.ts'
 
-enhancement:
+Styling:
   - changed-files:
     - any-glob-to-any-file: '**/*.css'
     - any-glob-to-any-file: 'tailwind.config.*'
     - any-glob-to-any-file: 'postcss.config.*'
 
-dependencies:
+Dependencies:
   - changed-files:
     - any-glob-to-any-file: 'package.json'
     - any-glob-to-any-file: 'package-lock.json'
 
-bug:
+Config:
   - changed-files:
     - any-glob-to-any-file: '*.config.*'
     - any-glob-to-any-file: '.eslintrc.*'
     - any-glob-to-any-file: 'tsconfig.json'
     - any-glob-to-any-file: '.gitignore'
 
-duplicate:
+Models:
   - changed-files:
     - any-glob-to-any-file: 'models/**/*'
 
-help wanted:
+Utils:
   - changed-files:
     - any-glob-to-any-file: 'utils/**/*'
     - any-glob-to-any-file: 'lib/**/*'

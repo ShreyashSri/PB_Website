@@ -1,18 +1,25 @@
-name: Pull Request Labeler
+name: Create Labels
 
 on:
-  - pull_request_target
+  workflow_dispatch:  # Manual trigger
 
 jobs:
-  triage:
+  create-labels:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/labeler@v5
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          configuration-path: .github/labeler.yaml
-
-    permissions:  
-        contents: read
-        pull-requests: write
+      - uses: actions/checkout@v3
+      
+      - name: Create Labels
+        run: |
+          gh label create "GitHub Actions" --color "0075ca" --description "Changes to GitHub workflows or actions"
+          gh label create "documentation" --color "0075ca" --description "Documentation changes"
+          gh label create "Devops" --color "0075ca" --description "DevOps related changes"
+          gh label create "Frontend" --color "0075ca" --description "Front-end related changes"
+          gh label create "Backend" --color "0075ca" --description "Back-end related changes"
+          gh label create "enhancement" --color "a2eeef" --description "New feature or enhancement"
+          gh label create "dependencies" --color "0366d6" --description "Updates to dependencies"
+          gh label create "bug" --color "d73a4a" --description "Something isn't working"
+          gh label create "duplicate" --color "cfd3d7" --description "This issue or pull request already exists"
+          gh label create "help wanted" --color "008672" --description "Extra attention is needed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.LABEL_TOKEN }}  # Use a PAT with admin permissions
