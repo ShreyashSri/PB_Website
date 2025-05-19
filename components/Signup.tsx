@@ -24,10 +24,6 @@
 //     setSignupError(""); // Clear previous errors
 //     setDbError(""); // Clear previous database errors
 
-     if (!email.endsWith("@pointblank.club")) {
-//       setSignupError("Access not granted!");
-//       return;
-//     }
 
         //     try {
 //       const methods = await fetchSignInMethodsForEmail(auth, email);
