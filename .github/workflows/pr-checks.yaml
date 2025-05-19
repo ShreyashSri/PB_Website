@@ -21,8 +21,8 @@ jobs:
       - name: Calculate changed lines
         id: changed-lines
         run: |
-          ADDED=$(git diff --shortstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -o '[0-9]\+ insertions' | grep -o '[0-9]\+')
-          DELETED=$(git diff --shortstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -o '[0-9]\+ deletions' | grep -o '[0-9]\+')
+          ADDED=$(git diff --shortstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -o '[0-9]+ insertions' | grep -o '[0-9]+' || echo "0")
+          DELETED=$(git diff --shortstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -o '[0-9]+ deletions' | grep -o '[0-9]+' || echo "0")
           ADDED=${ADDED:-0}
           DELETED=${DELETED:-0}
           TOTAL_LINES=$((ADDED + DELETED))
