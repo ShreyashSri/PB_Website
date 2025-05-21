@@ -18,38 +18,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Print PR context (for debugging)
-        run: |
-          echo "Head repo URL: ${{ github.event.pull_request.head.repo.clone_url }}"
-          echo "Head ref: ${{ github.event.pull_request.head.ref }}"
-          echo "Base ref: ${{ github.event.pull_request.base.ref }}"
-          echo "PR number: ${{ github.event.pull_request.number }}"
-
       - name: Fetch head commit
         run: |
-          echo "Fetching head branch..."
           git fetch ${{ github.event.pull_request.head.repo.clone_url }} ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
-          echo "Fetch complete."
 
       - name: Calculate changed lines
         id: changed-lines
         run: |
-          set -x  # Enable command tracing
+          set +e
           git checkout ${{ github.event.pull_request.head.ref }}
-          echo "Comparing with origin/${{ github.event.pull_request.base.ref }}..."
-          git fetch origin ${{ github.event.pull_request.base.ref }}  # Ensure base ref is available
-          git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD
-          ADDED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ insertions' | grep -o '[0-9]\+')
-          DELETED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ deletions' | grep -o '[0-9]\+')
+          ADDED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ insertions' | grep -o '[0-9]\+' || echo 0)
+          DELETED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ deletions' | grep -o '[0-9]\+' || echo 0)
           ADDED=${ADDED:-0}
           DELETED=${DELETED:-0}
           TOTAL_LINES=$((ADDED + DELETED))
-          echo "ADDED=$ADDED"
-          echo "DELETED=$DELETED"
-          echo "TOTAL_LINES=$TOTAL_LINES"
           echo "changed_lines=${TOTAL_LINES}" >> $GITHUB_OUTPUT
-          echo "::set-output name=changed_lines::${TOTAL_LINES}"
-          set +x
+          echo "Lines changed: $TOTAL_LINES"
 
       - name: Apply size label
         uses: actions/github-script@v6
@@ -59,14 +43,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const changeCount = parseInt(process.env.CHANGES);
-            console.log(`Total lines changed from shell: ${changeCount}`);
             const size =
               changeCount <= 9 ? 'XS' :
               changeCount <= 49 ? 'S' :
               changeCount <= 199 ? 'M' :
               changeCount <= 499 ? 'L' : 'XL';
 
-            console.log(`Determined size label: size-${size}`);
+            console.log(Determined size label: size-${size});
 
             const labels = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -78,7 +61,6 @@ jobs:
               label.name.startsWith('size-')
             );
 
-            console.log(`Removing existing size labels: ${sizeLabels.map(l => l.name).join(', ')}`);
             for (const label of sizeLabels) {
               await github.rest.issues.removeLabel({
                 owner: context.repo.owner,
@@ -92,11 +74,10 @@ jobs:
               await github.rest.issues.createLabel({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                name: `size-${size}`,
+                name: size-${size},
                 color: '0e8a16',
-                description: `Size label for PR with ${changeCount} lines changed`
+                description: Size label for PR with ${changeCount} lines changed
               });
-              console.log('Label created.');
             } catch (error) {
               if (error.status !== 422) throw error;
               console.log('Label already exists, skipping creation');
@@ -106,7 +87,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: [`size-${size}`]
+              labels: [size-${size}]
             });
 
             console.log('Size label based on lines changed applied');
@@ -120,18 +101,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Print PR SHAs (for debugging)
-        run: |
-          echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
-          echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-
       - name: Detect Merge Commits
         run: |
-          echo "Checking for merge commits between base and head..."
-          git log --merges ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --pretty=format:"%h"
           if git log --merges ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --pretty=format:"%h" | grep -q .; then
             echo "::error::PR contains merge commits. Use rebase instead."
             exit 1
           else
-            echo "✅ No merge commits detected."
+            echo "No merge commits detected."
           fi
