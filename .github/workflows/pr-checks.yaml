@@ -25,6 +25,7 @@ jobs:
       - name: Calculate changed lines
         id: changed-lines
         run: |
+          set +e
           git checkout ${{ github.event.pull_request.head.ref }}
           ADDED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ insertions' | grep -o '[0-9]\+')
           DELETED=$(git diff --shortstat origin/${{ github.event.pull_request.base.ref }}..HEAD | grep -o '[0-9]\+ deletions' | grep -o '[0-9]\+')
