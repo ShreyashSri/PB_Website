@@ -1,0 +1,41 @@
+name: SIH Data Backup
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Runs every 5 minutes
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  direct-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install MongoDB tools
+        run: |
+          curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg
+          echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools mongodb-org-shell
+
+      - name: Backup and Restore Specific Databases
+        run: |
+          set -e
+          
+          echo "Dumping specific databases..."
+          mongodump --uri "${{ secrets.NEXT_PUBLIC_MONGODB_URI }}" --db sih-reg --out ./temp_backup
+          mongodump --uri "${{ secrets.NEXT_PUBLIC_MONGODB_URI }}" --db sihreg --out ./temp_backup
+          
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
+
+          echo "Restoring databases..."
+          mongorestore --uri "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --db "sih-reg-$TIMESTAMP" --drop ./temp_backup/sih-reg
+          mongorestore --uri "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --db "sihreg-$TIMESTAMP" --drop ./temp_backup/sihreg
+          
+          echo "Backup completed successfully for $TIMESTAMP"
+
+      - name: Clean up local files
+        run: |
+          rm -rf ./temp_backups
