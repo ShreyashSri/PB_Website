@@ -25,8 +25,8 @@ jobs:
           set -e
           
           echo "Dumping specific databases..."
-          mongodump --uri "${{ secrets.NEXT_PUBLIC_MONGODB_URI }}" --db sih-reg --out ./temp_backup
-          mongodump --uri "${{ secrets.NEXT_PUBLIC_MONGODB_URI }}" --db sihreg --out ./temp_backup
+          mongodump --uri "${{ secrets.NEXT_PUBLIC_SIH_MONGODB_URI }}" --db sih-reg --out ./temp_backup
+          mongodump --uri "${{ secrets.NEXT_PUBLIC_SIH_MONGODB_URI }}" --db sihreg --out ./temp_backup
           
           TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
 
@@ -38,4 +38,4 @@ jobs:
 
       - name: Clean up local files
         run: |
-          rm -rf ./temp_backups
+          rm -rf ./temp_backup
