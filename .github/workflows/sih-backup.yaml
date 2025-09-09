@@ -36,6 +36,41 @@ jobs:
           
           echo "Backup completed successfully for $TIMESTAMP"
 
+      - name: Clean up old backups
+        env:
+          MAX_BACKUPS: 45
+        run: |
+          echo "Cleaning up old backups, keeping the latest $MAX_BACKUPS..."
+          
+          mongosh "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --eval '
+            const dbs = db.getMongo().getDBNames();
+            const maxBackups = parseInt(process.env.MAX_BACKUPS);
+
+            // Cleanup
+            const sihRegBackups = dbs.filter(name => name.startsWith("sih-reg-")).sort();
+            if (sihRegBackups.length > maxBackups) {
+              const backupsToDelete = sihRegBackups.slice(0, sihRegBackups.length - maxBackups);
+              backupsToDelete.forEach(dbName => {
+                print(`Deleting old backup: ${dbName}`);
+                db.getSiblingDB(dbName).dropDatabase();
+              });
+            } else {
+              print(`Found ${sihRegBackups.length} "sih-reg" backups. No cleanup needed.`);
+            }
+
+            const sihregBackups = dbs.filter(name => name.startsWith("sihreg-")).sort();
+            if (sihregBackups.length > maxBackups) {
+                const backupsToDelete = sihregBackups.slice(0, sihregBackups.length - maxBackups);
+                backupsToDelete.forEach(dbName => {
+                    print(`Deleting old backup: ${dbName}`);
+                    db.getSiblingDB(dbName).dropDatabase();
+                });
+            } else {
+                print(`Found ${sihregBackups.length} "sihreg" backups. No cleanup needed.`);
+            }
+          '
+      
       - name: Clean up local files
+        if: always()
         run: |
           rm -rf ./temp_backup
