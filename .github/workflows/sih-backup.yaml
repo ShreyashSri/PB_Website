@@ -15,12 +15,15 @@ jobs:
     steps:
       - name: Install MongoDB tools
         run: |
+          set -e
           curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg
           echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
           sudo apt-get update
           sudo apt-get install -y mongodb-database-tools mongodb-org-shell
 
-      - name: Backup and Restore Specific Databases
+      - name: Backup, Restore, and Cleanup
+        env:
+          MAX_BACKUPS: 45
         run: |
           set -e
           
@@ -36,12 +39,7 @@ jobs:
           
           echo "Backup completed successfully for $TIMESTAMP"
 
-      - name: Clean up old backups
-        env:
-          MAX_BACKUPS: 45
-        run: |
           echo "Cleaning up old backups, keeping the latest $MAX_BACKUPS..."
-          
           mongosh "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --eval '
             const dbs = db.getMongo().getDBNames();
             const maxBackups = parseInt(process.env.MAX_BACKUPS);
