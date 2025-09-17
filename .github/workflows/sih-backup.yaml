@@ -19,7 +19,7 @@ jobs:
           curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg
           echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
           sudo apt-get update
-          sudo apt-get install -y mongodb-database-tools mongodb-org-shell
+          sudo apt-get install -y mongodb-database-tools mongodb-mongosh
 
       - name: Backup, Restore, and Cleanup
         env:
@@ -29,13 +29,11 @@ jobs:
           
           echo "Dumping specific databases..."
           mongodump --uri "${{ secrets.NEXT_PUBLIC_SIH_MONGODB_URI }}" --db sih-reg --out ./temp_backup
-          mongodump --uri "${{ secrets.NEXT_PUBLIC_SIH_MONGODB_URI }}" --db sihreg --out ./temp_backup
           
           TIMESTAMP=$(date -u +%Y-%m-%dT%H-%M-%SZ)
 
           echo "Restoring databases..."
           mongorestore --uri "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --db "sih-reg-$TIMESTAMP" --drop ./temp_backup/sih-reg
-          mongorestore --uri "${{ secrets.NEXT_PUBLIC_SIH_BACKUP_DB_URI }}" --db "sihreg-$TIMESTAMP" --drop ./temp_backup/sihreg
           
           echo "Backup completed successfully for $TIMESTAMP"
 
@@ -55,19 +53,8 @@ jobs:
             } else {
               print(`Found ${sihRegBackups.length} "sih-reg" backups. No cleanup needed.`);
             }
-
-            const sihregBackups = dbs.filter(name => name.startsWith("sihreg-")).sort();
-            if (sihregBackups.length > maxBackups) {
-                const backupsToDelete = sihregBackups.slice(0, sihregBackups.length - maxBackups);
-                backupsToDelete.forEach(dbName => {
-                    print(`Deleting old backup: ${dbName}`);
-                    db.getSiblingDB(dbName).dropDatabase();
-                });
-            } else {
-                print(`Found ${sihregBackups.length} "sihreg" backups. No cleanup needed.`);
-            }
           '
-      
+
       - name: Clean up local files
         if: always()
         run: |
